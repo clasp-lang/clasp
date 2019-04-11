@@ -1,0 +1,18 @@
+[package]
+name        = "clasp"
+description = """
+              A declarative logic-based programming language for
+              cryptographically authenticating and verifying structured data.
+              Inspired by Datalog-like authorization languages such as Binder and
+              logic-based credential formats like Macaroons.
+              """
+authors     = ["Tony Arcieri <tony.arcieri@gmail.com>"]
+version     = "0.0.0"
+edition     = "2018"
+license     = "Apache-2.0"
+readme      = "README.md"
+repository  = "https://github.com/clasp-lang/clasp"
+categories  = ["authentication", "cryptography", "command-line-utilities", "data-structures", "encoding"]
+keywords    = ["authorization", "credentials", "datalog", "logic", "programming"]
+
+[dependencies]
