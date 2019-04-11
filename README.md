@@ -46,8 +46,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[build-image]: https://secure.travis-ci.org/clasp-lang/clasp.svg?branch=develop
-[build-link]: https://travis-ci.org/clasp-lang/clasp
+[build-image]: https://api.travis-ci.com/clasp-lang/clasp.svg?branch=develop
+[build-link]: https://travis-ci.com/clasp-lang/clasp/
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
 [license-link]: https://github.com/clasp-lang/clasp/blob/develop/LICENSE
 [Datalog]: https://en.wikipedia.org/wiki/Datalog
