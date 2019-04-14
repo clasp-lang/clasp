@@ -1,0 +1,139 @@
+// Clasp Grammar (LALRPOP)
+//
+// Adapted in part from the "rustypop" grammar by Niko Matsakis, which is
+// distributed under the terms of the Apache 2.0 license.
+//
+// <https://github.com/nikomatsakis/rustypop>
+
+use super::ast;
+use super::token::Token;
+
+grammar<'input>;
+
+pub Program: ast::Program<'input> = {
+    Statement* => ast::Program(vec![<>]),
+};
+
+Statement: ast::Statement<'input> = {
+    UseStatement => ast::Statement::Use(<>),
+    MessageStatement => ast::Statement::Message(<>),
+    StructStatement => ast::Statement::Struct(<>),
+};
+
+UseStatement: ast::UseStatement<'input> = {
+    "use" <path:UsePath> ";" => ast::UseStatement { path },
+};
+
+UsePath: Vec<ast::Identifier<'input>> = {
+    Path => vec![<>],
+};
+
+Path: Vec<ast::Identifier<'input>> = {
+    Identifier => vec![<>],
+    <path:Path> "." <component:Identifier> => ast::append(path, component),
+};
+
+MessageStatement: ast::MessageStatement = {
+    "message" Identifier GenericParams MessageDeclArgs,
+    "message" Identifier GenericParams ";",
+};
+
+MessageDeclArgs: () = {
+    "{" StructDeclFields "}"
+};
+
+StructStatement: ast::StructStatement = {
+    "struct" Identifier GenericParams StructDeclArgs,
+    "struct" Identifier GenericParams ";",
+};
+
+StructDeclArgs: () = {
+    "{" StructDeclFields "}"
+};
+
+StructDeclFields: () = {
+    Comma<StructDeclField>,
+};
+
+StructDeclField: () = {
+    Identifier ":" Ty,
+};
+
+GenericParams: () = {
+    TyLt Comma1<TyParam> TyGt,
+    TyLt TyGt,
+};
+
+Ty: () = {
+    Path,
+};
+
+TyParam: () = {
+    Identifier,
+};
+
+// Comma-separated list with optional trailing comma.
+#[inline]
+Comma<E>: () =
+    Delim<E, ",">;
+
+// Delimeted list of E with optional trailing delimiter.
+#[inline]
+Delim<E,D>: () =
+    (E D)* E?;
+
+// Comma-separated list of length at least 1. Trailing comma accepted.
+#[inline]
+Comma1<E>: () =
+    Delim1<E,",">;
+
+// Delimited list of length at least 1. Trailing delimiter accepted.
+#[inline]
+Delim1<E,D>: () = {
+    (E D)+,
+    Delim1NoTrail<E, D>,
+};
+
+// Delimited list of length at least 1. No trailing delimiter accepted.
+#[inline]
+Delim1NoTrail<E,D>: () = {
+    (E D)* E,
+};
+
+// Extract one `<` when used as part of a series of `<` in a row, like
+// `<<` or `<<<` or `<<<<<`. Intended for use in types.
+#[inline]
+TyLt: () = {
+    "<[<]",
+    "<[]",
+};
+
+// Extract one `>` when used as part of a series of `>` in a row, like
+// `>>` or `>>>` or `>>>>>`. Intended for use in types.
+#[inline]
+TyGt: () = {
+    ">[>]",
+    ">[]",
+};
+
+extern {
+    enum Token {
+        "*" => Token::Star,
+        "," => Token::Comma,
+        "." => Token::Dot,
+        ";" => Token::Semi,
+        ":" => Token::Colon,
+        "{" => Token::CurlyBraceOpen,
+        "}" => Token::CurlyBraceClose,
+        "<[<]" => Token::LessFollowedByLess,
+        "<[]" => Token::LessFollowedByOther,
+        ">[>]" => Token::GreaterFollowedByGreater,
+        ">[]" => Token::GreaterFollowedByOther,
+
+        "message" => Token::KeywordMessage,
+        "struct" => Token::KeywordStruct,
+        "use" => Token::KeywordUse,
+
+        Identifier => ast::Identifier
+    }
+}

@@ -1,0 +1,71 @@
+/// Macaroon verifier implemented in Clasp
+
+use core.(object.hash, crypto.hmac);
+
+/// Size of an HMAC tag
+const TAG_SIZE = 16;
+
+message Macaroon<T, C: Caveat<T>> {
+    identifier(0): Identifier,
+    caveats(1): C[],
+    tag(2): Tag,
+}
+
+message Identifier {
+    nonce(0): byte[TAG_SIZE],
+    keyid: KeyID,
+}
+
+interface Caveat<T> {
+    authorize: (T) -> !
+}
+
+message Tag {
+    bytes(0): byte[TAG_SIZE],
+}
+
+message KeyID {
+    label(0): string,
+}
+
+macro KeyID(label: string) {
+    KeyID { label }
+}
+
+message Key {
+    bytes: byte[TAG_SIZE],
+}
+
+macro Key(bytes: byte[TAG_SIZE]) {
+    Key { bytes }
+}
+
+macro Key(tag: Tag) {
+    Key(tag.bytes)
+}
+
+macro Key.hmac(self, message: byte[]) -> Tag {
+    Tag { bytes: hmac.sha256(self.bytes, message) }
+}
+
+type KeySet {
+    keys: map<string, Key>
+}
+
+macro KeySet() {
+    KeySet { keys: map() }
+}
+
+macro KeySet.add(self, keyid: string, key_bytes: byte[TAG_SIZE]) -> KeySet {
+    KeySet { keys: self.keys.insert(KeyID(keyid), Key(key_bytes)) }
+}
+
+macro<T, C: Caveat<T>> KeySet.verify(self, context: T, macaroon: Macaroon<T, C>) -> ! {
+    let root_key = self.keys[macaroon.keyid]!.hmac(hash(macaroon.identifier);
+
+    // Verify all caveats are authorized `macaroon.tag` unifies with the computed tag
+    macaroon.tag <- macaroon.caveats.inject(root_key), |caveat_key, caveat| {
+        caveat.authorize(context)!;
+        Key.from(caveat_key.hmac(hash(caveat))
+    })
+}

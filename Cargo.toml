@@ -11,8 +11,14 @@ version     = "0.0.0"
 edition     = "2018"
 license     = "Apache-2.0"
 readme      = "README.md"
+build       = "build.rs"
 repository  = "https://github.com/clasp-lang/clasp"
 categories  = ["authentication", "cryptography", "command-line-utilities", "data-structures", "encoding"]
 keywords    = ["authorization", "credentials", "datalog", "logic", "programming"]
 
 [dependencies]
+lalrpop-util = "0.16"
+regex = "0.2"
+
+[build-dependencies]
+lalrpop = "0.16"
